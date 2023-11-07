@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useRouter } from 'next/router'
 import { deleteUser, getUsers } from '@/services/user'
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/outline'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useDebounce } from '@/hooks/useDebounce'
 import {
@@ -24,6 +24,7 @@ import { useToast } from '@/components/toast'
 
 export default function Example() {
   const router = useRouter()
+  const queryClient = useQueryClient()
   const [showAlert, setShowAlert] = useState(false)
   const [currentId, setCurrentId] = useState(0)
   const toast = useToast()
@@ -53,6 +54,7 @@ export default function Example() {
       })
       setShowAlert(false)
       setIsDeleting(false)
+      queryClient.invalidateQueries({ queryKey: ['users'] })
     } catch (error) {
       setShowAlert(false)
       setIsDeleting(false)
@@ -118,7 +120,7 @@ export default function Example() {
           <Table withBorder loading={status === 'loading' || isFetching}>
             <Thead>
               <Tr>
-                <Th className="w-10">No.</Th>
+                <Th className="w-10">Id</Th>
                 <Th>Name</Th>
                 <Th>Email</Th>
                 <Th>Created At</Th>
@@ -131,7 +133,7 @@ export default function Example() {
                   {data?.data?.map((item, index) => {
                     return (
                       <Tr key={index}>
-                        <Td>{limit * page - limit + index + 1}</Td>
+                        <Td>{item.id}</Td>
                         <Td>{item.fullname}</Td>
                         <Td>{item.email}</Td>
                         <Td>{item.created_at}</Td>
@@ -191,7 +193,7 @@ export default function Example() {
               <option value="20">20</option>
               <option value="50">50</option>
             </NativeSelect>
-            <div>Showing 10 of 100 items</div>
+            <div>Showing {limit} of {data?.meta.total} items</div>
           </div>
 
           <Pagination
